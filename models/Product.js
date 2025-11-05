@@ -3,14 +3,6 @@ const { Schema } = mongoose;
 const timestamps = require("mongoose-timestamp");
 const SeoSchema = require("./SEO");
 
-const TranslationSchema = new Schema({
-  lang: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-});
-
 const ProductSchema = new Schema({
   title: {
     type: String,
