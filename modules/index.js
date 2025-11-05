@@ -11,6 +11,7 @@ const orderRoutes = require("./order/order.routes");
 const customerRoutes = require("./customer/customer.routes");
 const adminRoutes = require("./admin/admin.routes");
 const addressRoutes = require("./address/address.routes");
+const settingsRoutes = require("./settings/settings.routes");
 
 router.use("/media", mediaRoutes);
 router.use("/brand", brandRoutes);
@@ -22,5 +23,6 @@ router.use("/order", orderRoutes);
 router.use("/customer", customerRoutes);
 router.use("/admin", adminRoutes);
 router.use("/address", addressRoutes);
+router.use("/settings", settingsRoutes);
 
 module.exports = router;
