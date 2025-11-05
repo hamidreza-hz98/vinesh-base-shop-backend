@@ -31,9 +31,9 @@ const OrderSchema = new Schema({
       },
     },
   ],
-  user: {
+  customer: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "Customer",
     required: true,
   },
   description: {
@@ -65,11 +65,6 @@ const OrderSchema = new Schema({
       min: 0,
     },
   },
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
   shipmentDate: {
     type: Date,
     default: null,
@@ -82,11 +77,11 @@ const OrderSchema = new Schema({
 
 OrderSchema.plugin(timestamps);
 
-OrderSchema.index({ user: 1 });
+OrderSchema.index({ customer: 1 });
 OrderSchema.index({ status: 1 });
 OrderSchema.index({ transaction: 1 });
 OrderSchema.index({ shipmentTrackNumber: 1 }, { sparse: true });
 OrderSchema.index({ shipmentDate: 1 });
-OrderSchema.index({ user: 1, status: 1 });
+OrderSchema.index({ customer: 1, status: 1 });
 
 module.exports = mongoose.model("Order", OrderSchema);

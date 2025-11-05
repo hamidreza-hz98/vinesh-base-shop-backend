@@ -1,4 +1,10 @@
 const express = require("express");
 const router = express.Router();
 
-module.exports = router
+const mediaRoutes = require("./media/media.routes");
+const brandRoutes = require("./brand/brand.routes");
+
+router.use("/media", mediaRoutes);
+router.use("/brand", brandRoutes);
+
+module.exports = router;

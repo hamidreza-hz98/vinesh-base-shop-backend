@@ -11,14 +11,6 @@ const MediaSchema = new Schema(
     mimeType: { type: String, required: true },
     size: { type: Number, required: true },
 
-    type: {
-      type: String,
-      enum: ["image", "video", "file", "icon", "audio"],
-      required: true,
-      index: true,
-    },
-
-    uploadedBy: { type: Schema.Types.ObjectId, ref: "Admin" },
      title: { type: String, trim: true },
     description: { type: String, trim: true },
 

@@ -18,9 +18,9 @@ const CartSchema = new Schema({
       },
     },
   ],
-  user: {
+  customer: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "Customer",
     required: true,
   },
   description: {
@@ -58,7 +58,7 @@ const CartSchema = new Schema({
 CartSchema.plugin(timestamps);
 
 // Indexes
-CartSchema.index({ user: 1 }, { unique: true });
+CartSchema.index({ customer: 1 }, { unique: true });
 CartSchema.index({ "products.product": 1 });
 CartSchema.index({ createdAt: -1 });
 CartSchema.index({ updatedAt: -1 });
