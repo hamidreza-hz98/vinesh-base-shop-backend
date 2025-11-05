@@ -8,7 +8,7 @@ const brandService = {
   },
 
   async create(data) {
-    const existing = this.exists({ _id: data._id });
+    const existing = this.exists({ slug: data.slug });
 
     if (existing) {
       throwError("برند با این مشخصات وجود دارد.", 409);
@@ -33,7 +33,7 @@ const brandService = {
 
   async getAll({
     search = "",
-    sort = { field: "createdAt", order: "asc" },
+    sort = { field: "createdAt", order: "desc" },
     page = 1,
     page_size = 10,
     filters = {},
