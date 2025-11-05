@@ -21,7 +21,6 @@ const CartSchema = new Schema({
   customer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Customer",
-    required: true,
   },
   description: {
     type: String,
