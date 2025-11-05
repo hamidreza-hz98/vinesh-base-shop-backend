@@ -1,0 +1,92 @@
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
+const timestamps = require("mongoose-timestamp");
+const { createOrderCode } = require("../lib/general");
+
+const OrderSchema = new Schema({
+  code: {
+    type: String,
+    unique: true,
+    default: () => createOrderCode(),
+  },
+  status: {
+    type: String,
+    enum: ["pending_payment", "paid", "shipping", "delivered"],
+    required: true,
+    default: "pending_payment",
+    trim: true,
+  },
+  products: [
+    {
+      product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+        required: true,
+      },
+      quantity: {
+        type: Number,
+        required: true,
+        default: 1,
+        min: 1,
+      },
+    },
+  ],
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  description: {
+    type: String,
+    default: "",
+  },
+  address: {
+    type: Schema.Types.Mixed,
+    required: true,
+  },
+  transaction: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Transaction",
+  },
+  price: {
+    products: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    shipment: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    discounts: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  shipmentDate: {
+    type: Date,
+    default: null,
+  },
+  shipmentTrackNumber: {
+    type: String,
+    default: "",
+  },
+});
+
+OrderSchema.plugin(timestamps);
+
+OrderSchema.index({ user: 1 });
+OrderSchema.index({ status: 1 });
+OrderSchema.index({ transaction: 1 });
+OrderSchema.index({ shipmentTrackNumber: 1 }, { sparse: true });
+OrderSchema.index({ shipmentDate: 1 });
+OrderSchema.index({ user: 1, status: 1 });
+
+module.exports = mongoose.model("Order", OrderSchema);
