@@ -8,7 +8,7 @@ const brandService = {
   },
 
   async create(data) {
-    const existing = this.exists({ slug: data.slug });
+    const existing = await this.exists({ slug: data.slug });
 
     if (existing) {
       throwError("برند با این مشخصات وجود دارد.", 409);
@@ -33,7 +33,7 @@ const brandService = {
 
   async getAll({
     search = "",
-    sort = { field: "createdAt", order: "desc" },
+    sort = [{ field: "createdAt", order: "desc" }],
     page = 1,
     page_size = 10,
     filters = {},
@@ -47,7 +47,7 @@ const brandService = {
     const skip = (page - 1) * page_size;
 
     const [brands, total] = await Promise.all([
-      Brand.find(query).sort(sortOption).skip(skip).limit(page_size).lean(),
+      Brand.find(query).sort(sortOption).skip(skip).limit(page_size).populate("logo tags").lean(),
       Brand.countDocuments(query),
     ]);
 
@@ -69,7 +69,9 @@ const brandService = {
       filter,
       { $inc: { visits: 1 } },
       { new: true }
-    ).lean();
+    )
+    .populate("logo seo.ogImage seo.twitterImage tags")
+    .lean();
 
     if (!brand) {
       throwError("برند مورد نظر یافت نشد.", 404);

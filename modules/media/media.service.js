@@ -2,13 +2,14 @@ const fs = require("fs");
 const path = require("path");
 const throwError = require("../../middlewares/throw-error");
 const Media = require("../../models/Media");
+const { buildMongoSort } = require("../../lib/filter");
 
 const mediaService = {
   async exists(filter) {
     return await Media.findOne(filter);
   },
 
-  async upload({ file,  seo }) {
+  async upload({ file, body }) {
     if (!file) {
       throwError("فایل الزامی است.", 400);
     }
@@ -19,7 +20,7 @@ const mediaService = {
       extension: path.extname(file.originalname).replace(".", ""),
       mimeType: file.mimetype,
       size: file.size,
-      ...seo
+      ...body,
     });
 
     return await media.save();
@@ -39,7 +40,7 @@ const mediaService = {
         extension: path.extname(data.file.originalname).replace(".", ""),
         mimeType: data.file.mimetype,
         size: data.file.size,
-        ...data.seo
+        ...data.body,
       },
       { new: true }
     );
@@ -57,14 +58,15 @@ const mediaService = {
 
   async getAll({
     filter = {},
-    sort = "createdAt: -1",
+    sort = [{ field: "createdAt", order: "desc" }],
     page = 1,
     page_size = 1000,
   }) {
     const skip = (page - 1) * page_size;
+    const sortOption = buildMongoSort(sort);
 
     const [items, total] = await Promise.all([
-      Media.find(filter).sort(sort).skip(skip).limit(page_size),
+      Media.find(filter).sort(sortOption).skip(skip).limit(page_size),
       Media.countDocuments(filter),
     ]);
 

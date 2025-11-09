@@ -3,9 +3,8 @@ const { mediaService } = require("./media.service");
 const mediaController = {
   async upload(req, res) {
     const { file, body } = req;
-
     try {
-      const media = await mediaService.upload({ file, ...body });
+      const media = await mediaService.upload({ file, body });
 
       res.success({
         message: `مدیا با موفقیت بارگزاری شد.`,
@@ -21,7 +20,7 @@ const mediaController = {
     const {file, body} = req;
 
     try {
-      const media = await mediaService.update(_id, {file, ...body});
+      const media = await mediaService.update(_id, {file, body});
 
       res.success({
         message: `مدیا با موفقیت به روز رسانی شد.`,

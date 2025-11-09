@@ -1,12 +1,7 @@
 // validations/brand.validation.js
 const Joi = require("joi");
+const seoValidationSchema = require("../../constants/seo-validation-schema")
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
-
-const seoSchema = Joi.object({
-  title: Joi.string().allow("", null),
-  description: Joi.string().allow("", null),
-  keywords: Joi.array().items(Joi.string()).default([]),
-}).default({});
 
 const BrandValidation = {
   create: Joi.object({
@@ -23,7 +18,7 @@ const BrandValidation = {
 
     description: Joi.string().allow("", null),
 
-    seo: seoSchema,
+    seo: seoValidationSchema,
   }),
 
   update: Joi.object({
@@ -39,7 +34,7 @@ const BrandValidation = {
 
     description: Joi.string().allow("", null),
 
-    seo: seoSchema,
+    seo: seoValidationSchema,
 
     visits: Joi.number().min(0),
   }).min(1), // At least one field required on update

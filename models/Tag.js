@@ -11,7 +11,6 @@ const TagSchema = new Schema({
   },
   slug: {
     type: String,
-    required: true,
   },
 });
 

@@ -16,16 +16,18 @@ const adminService = {
   },
 
   async login(data) {
-    const existing = await Admin.exists({ username: data.username });
+    
+    const existing = await Admin.findOne({ username: data.username });
     if (!existing) {
-      throwError("کاربر با این شناسه کاربری وجود ندارد.", 409);
+      throwError("نام کاربری یا کلمه ی عبور اشتباه است.", 401);
     }
-
+    
+    
     const isMatch = await bcrypt.compare(data.password, existing.password);
     if (!isMatch) {
       throwError("نام کاربری یا کلمه ی عبور اشتباه است.", 401);
     }
-
+    
     const token = generateToken({
       id: existing._id,
       type: "admin",
