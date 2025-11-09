@@ -33,7 +33,7 @@ const categoryService = {
 
   async getAll({
     search = "",
-    sort = { field: "createdAt", order: "desc" },
+    sort = [{ field: "createdAt", order: "desc" }],
     page = 1,
     page_size = 10,
     filters = {},
@@ -49,7 +49,7 @@ const categoryService = {
     const skip = (page - 1) * page_size;
 
     const [categories, total] = await Promise.all([
-      Category.find(query).sort(sortOption).skip(skip).limit(page_size).lean(),
+      Category.find(query).sort(sortOption).skip(skip).limit(page_size).populate("image").lean(),
       Category.countDocuments(query),
     ]);
 
@@ -64,7 +64,7 @@ const categoryService = {
       );
     }
 
-    const category = await Category.findOne(filter).lean();
+    const category = await Category.findOne(filter).populate("image seo.ogImage seo.twitterImage tags children").lean();
 
     if (!category) {
       throwError("دسته بندی مورد نظر یافت نشد.", 404);

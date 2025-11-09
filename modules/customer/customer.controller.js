@@ -7,7 +7,7 @@ const customerController = {
     try {
       const customer = await customerService.create(data);
 
-      res.message({
+      res.success({
         message: `کاربر ${customer.firstName + " " + customer.lastName} با موفقیت ساخته شد.`,
         data: customer,
       });
@@ -26,7 +26,7 @@ const customerController = {
     try {
       const customer = await customerService.update(data, _id);
 
-      res.message({
+      res.success({
         message: `کاربر ${customer.firstName + " " + customer.lastName} با موفقیت ویرایش شد.`,
         data: customer,
       });
@@ -82,7 +82,7 @@ const customerController = {
     try {
       const customer = await customerService.delete(_id);
 
-      res.message({
+      res.success({
         message: `کاربر ${customer.firstName + " " + customer.lastName} با موفقیت حذف شد.`,
         data: customer,
       });

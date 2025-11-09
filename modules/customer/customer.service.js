@@ -7,6 +7,7 @@ const customerService = {
   async create(data) {
     const existing = await Customer.exists({ phone: data.phone });
 
+
     if (existing) {
       throwError("مشتری با این شماره تلفن قبلا ثبت نام کرده است.", 409);
     }
@@ -30,7 +31,7 @@ const customerService = {
 
   async getAll({
     search = "",
-    sort = { field: "createdAt", order: "desc" },
+    sort = [{ field: "createdAt", order: "desc" }],
     page = 1,
     page_size = 10,
     filters = {},
@@ -65,7 +66,7 @@ const customerService = {
   },
 
   async delete(_id) {
-    const existing = await Customer.exists(filter);
+    const existing = await Customer.exists({_id});
 
     if (!existing) {
       throwError("مشتری با این مشخصات یافت نشد.", 404);

@@ -26,7 +26,6 @@ const CustomerSchema = new Schema({
   },
   password: {
     type: String,
-    required: true,
     default: "",
   },
   birthdate: {

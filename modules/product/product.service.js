@@ -29,7 +29,7 @@ const productService = {
 
   async getAll({
     search = "",
-    sort = { field: "createdAt", order: "desc" },
+    sort = [{ field: "createdAt", order: "desc" }],
     page = 1,
     page_size = 10,
     filters = {},
@@ -43,7 +43,14 @@ const productService = {
     const skip = (page - 1) * page_size;
 
     const [products, total] = await Promise.all([
-      Product.find(query).sort(sortOption).skip(skip).limit(page_size).lean(),
+      Product.find(query)
+        .sort(sortOption)
+        .skip(skip)
+        .limit(page_size)
+        .populate(
+          "media"
+        )
+        .lean(),
       Product.countDocuments(query),
     ]);
 
@@ -61,7 +68,9 @@ const productService = {
       );
     }
 
-    const product = await Product.findOne(filter);
+    const product = await Product.findOne(filter).populate(
+      "categories media seo.ogImage seo.twitterImage tags brand relatedProducts"
+    );
 
     if (!product) {
       throwError("محصول مورد نظر یافت نشد", 404);

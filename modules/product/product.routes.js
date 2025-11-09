@@ -20,7 +20,7 @@ router.get("/", productController.getAll);
 router.get("/details", productController.getDetails);
 
 router.put(
-  "/: _id",
+  "/:_id",
   authenticate,
   requireAdmin,
   validate(productValidation.update),
@@ -28,7 +28,7 @@ router.put(
 );
 
 router.delete(
-  "/: _id",
+  "/:_id",
   authenticate,
   requireAdmin,
   productController.delete

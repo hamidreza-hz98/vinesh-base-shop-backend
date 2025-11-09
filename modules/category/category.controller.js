@@ -38,7 +38,7 @@ const categoryController = {
     }
   },
 
-  async getAll(rea, res) {
+  async getAll(req, res) {
     const query = req.query;
 
     try {

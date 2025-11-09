@@ -1,12 +1,7 @@
 // validations/product.validation.js
+const seoValidationSchema = require("../../constants/seo-validation-schema");
 const Joi = require("joi");
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
-
-const seoSchema = Joi.object({
-  title: Joi.string().allow("", null),
-  description: Joi.string().allow("", null),
-  keywords: Joi.array().items(Joi.string()).default([]),
-}).default({});
 
 const specificationSchema = Joi.object({
   key: Joi.string().required(),
@@ -26,11 +21,16 @@ const productValidation = {
     media: Joi.array().items(Joi.string().pattern(objectIdRegex)).default([]),
 
     stock: Joi.number().required().min(0).default(0),
-    relatedProducts: Joi.array().items(Joi.string().pattern(objectIdRegex)).default([]),
+    relatedProducts: Joi.array()
+      .items(Joi.string().pattern(objectIdRegex))
+      .default([]),
 
     visits: Joi.number().min(0).default(0),
     tags: Joi.array().items(Joi.string().pattern(objectIdRegex)).default([]),
-    categories: Joi.array().items(Joi.string().pattern(objectIdRegex)).min(1).required(),
+    categories: Joi.array()
+      .items(Joi.string().pattern(objectIdRegex))
+      .min(1)
+      .required(),
     brand: Joi.string().pattern(objectIdRegex).allow(null),
 
     soldNumber: Joi.number().min(0).default(0),
@@ -38,7 +38,7 @@ const productValidation = {
     shortSpecifications: Joi.array().items(specificationSchema).default([]),
     specifications: Joi.array().items(specificationSchema).default([]),
 
-    seo: seoSchema,
+    seo: seoValidationSchema,
   }),
 
   update: Joi.object({
@@ -64,7 +64,7 @@ const productValidation = {
     shortSpecifications: Joi.array().items(specificationSchema),
     specifications: Joi.array().items(specificationSchema),
 
-    seo: seoSchema,
+    seo: seoValidationSchema,
   }).min(1), // At least one field must be updated
 };
 

@@ -6,13 +6,15 @@ const { slugify } = require("../../lib/general");
 const tagService = {
   async create(data) {
     const existing = await Tag.exists({ slug: slugify(data.name) });
-
+    
+    
+    
     if (existing) {
       throwError("برچسب با این نام قبلا ایجاد شده است", 409);
     }
-
+    
     const tag = new Tag(data);
-
+    
     return await tag.save();
   },
 

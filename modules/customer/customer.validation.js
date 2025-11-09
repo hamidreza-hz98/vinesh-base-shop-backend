@@ -9,7 +9,7 @@ const customerValidation = {
     lastName: Joi.string().required().trim(),
     phone: Joi.string().required().trim(),
     email: Joi.string().email().trim(),
-    password: Joi.string().required().min(6),
+    password: Joi.string(),
     birthdate: Joi.date().allow(null),
   }),
 
@@ -18,7 +18,7 @@ const customerValidation = {
     lastName: Joi.string().trim(),
     phone: Joi.string().trim(),
     email: Joi.string().email().trim(),
-    password: Joi.string().min(6),
+    password: Joi.string(),
     birthdate: Joi.date(),
   }).min(1), // At least one field required for update
 

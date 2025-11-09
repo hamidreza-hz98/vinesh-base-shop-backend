@@ -50,6 +50,6 @@ router.put(
   customerController.update
 );
 
-router.delete("/:id", authenticate, requireAdmin, customerController.delete);
+router.delete("/:_id", authenticate, requireAdmin, customerController.delete);
 
 module.exports = router;
