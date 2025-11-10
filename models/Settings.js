@@ -1,22 +1,13 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const timestamps = require("mongoose-timestamp");
-
-const DefaultSeoSchema = new Schema(
-  {
-    title: { type: String },
-    description: { type: String },
-    keywords: [{ type: String }],
-    image: { type: Schema.Types.ObjectId, ref: "Media" },
-  },
-  { _id: false }
-);
+const SeoSchema = require("./SEO");
 
 const ContactInfoSchema = new Schema(
   {
-    mobile: [{ type: String }],
-    phone: [{ type: String }],
-    email: [{ type: String }],
+    mobile: { type: String },
+    phone: { type: String },
+    email: { type: String },
     address: { type: String },
     mapIframe: { type: String },
   },
@@ -61,10 +52,11 @@ const AboutSchema = new Schema(
 );
 
 const SettingsSchema = new Schema({
-  defaultSeo: DefaultSeoSchema,
+  [`default-seo`]: SeoSchema,
 
   general: {
     logo: { type: Schema.Types.ObjectId, ref: "Media" },
+    name: { type: String },
     footerText: { type: String },
     contactInfo: ContactInfoSchema,
     social: SocialSchema,

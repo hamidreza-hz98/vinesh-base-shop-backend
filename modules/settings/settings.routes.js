@@ -7,8 +7,8 @@ const settingsValidation = require("./settings.validation");
 const settingsController = require("./settings.controller");
 const { authenticate, requireAdmin } = require("../../middlewares/auth");
 
-router.post(
-  "/",
+router.put(
+  "/:section",
   authenticate,
   requireAdmin,
   validate(settingsValidation.update),

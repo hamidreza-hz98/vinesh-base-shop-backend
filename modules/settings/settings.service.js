@@ -1,6 +1,6 @@
 const _ = require("lodash");
 const Settings = require("../../models/Settings");
-const throwError = require("../../middlewares/throw-error")
+const throwError = require("../../middlewares/throw-error");
 
 const settingsService = {
   /**
@@ -8,18 +8,27 @@ const settingsService = {
    * - If no settings found, it creates one
    * - Performs deep merge update
    */
-  async update(data) {
+  async update(data, section) {    
     let settings = await Settings.findOne();
+    
 
     if (!settings) {
       settings = await Settings.create({});
     }
 
-    const updatedData = _.merge({}, settings.toObject(), data);
+    const updatedSettings = await Settings.findOneAndUpdate(
+      { _id: settings._id },
+      { $set: data },
+      { new: true }
+    ).populate([
+      "general.logo",
+      "general.homepageSlider",
+      "default-seo.ogImage",
+      "default-seo.twitterImage",
+      "about.image",
+    ]);
 
-    await Settings.updateOne({ _id: settings._id }, updatedData, { new: true });
-
-    return updatedData;
+    return updatedSettings[section];
   },
 
   /**
@@ -27,13 +36,17 @@ const settingsService = {
    * @param {string} section
    */
   async getSection(section) {
-    const validSections = ["defaultSeo", "general", "faq", "terms", "about"];
+    const validSections = ["default-seo", "general", "faq", "terms", "about"];
 
     if (!validSections.includes(section)) {
-      throwError("تنظیماتی یافت نشد.");
+      throwError("تنظیماتی یافت نشد.", 404);
     }
 
-    const settings = await Settings.findOne().lean();
+    const settings = await Settings.findOne()
+      .populate(
+        "general.logo general.homepageSlider default-seo.ogImage default-seo.twitterImage about.image"
+      )
+      .lean();
 
     if (!settings) {
       throwError("تنظیماتی یافت نشد.");

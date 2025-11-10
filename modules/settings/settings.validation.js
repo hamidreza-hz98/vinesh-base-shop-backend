@@ -1,41 +1,29 @@
 // validations/settings.validation.js
 const Joi = require("joi");
+const seoValidationSchema = require("../../constants/seo-validation-schema")
 
 const objectId = Joi.string().hex().length(24);
 const iranMobileRegex = /^09\d{9}$/;
 const iranPhoneRegex = /^0\d{10}$/; // Example: 021xxxxxxx or 0x...
 
-const DefaultSeoSchema = Joi.object({
-  title: Joi.string().trim(),
-  description: Joi.string().trim(),
-  keywords: Joi.array().items(Joi.string().trim()),
-  image: objectId,
-});
-
 const ContactInfoSchema = Joi.object({
-  mobile: Joi.array()
-    .items(
-      Joi.string()
+  mobile: Joi.string()
         .trim()
         .pattern(iranMobileRegex)
         .messages({
           "string.pattern.base": "Mobile number must be a valid Iranian mobile (e.g. 09123456789)",
         })
-    )
-    .default([]),
+    .default(""),
 
-  phone: Joi.array()
-    .items(
-      Joi.string()
+  phone: Joi.string()
         .trim()
         .pattern(iranPhoneRegex)
         .messages({
           "string.pattern.base": "Phone must be a valid Iranian phone number (e.g. 02112345678)",
         })
-    )
-    .default([]),
+    .default(""),
 
-  email: Joi.array().items(Joi.string().trim().email()).default([]),
+  email: Joi.string().trim().email().default(""),
 
   address: Joi.string().trim(),
   mapIframe: Joi.string().trim(),
@@ -68,9 +56,10 @@ const AboutSchema = Joi.object({
 
 const settingsValidation = {
   create: Joi.object({
-    defaultSeo: DefaultSeoSchema,
+    [`default-seo`]: seoValidationSchema,
 
     general: Joi.object({
+  name: Joi.string(),
       logo: objectId,
       footerText: Joi.string().trim(),
       contactInfo: ContactInfoSchema,
@@ -86,8 +75,9 @@ const settingsValidation = {
   }),
 
   update: Joi.object({
-    defaultSeo: DefaultSeoSchema,
+    [`default-seo`]: seoValidationSchema,
     general: Joi.object({
+  name: Joi.string(),
       logo: objectId,
       footerText: Joi.string().trim(),
       contactInfo: ContactInfoSchema,

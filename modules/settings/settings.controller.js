@@ -3,9 +3,10 @@ const settingsService = require("./settings.service");
 const settingsController = {
   async update(req, res) {
     const data = req.body;
-
+    const { section } = req.params;
+    
     try {
-      const settings = await settingsService.update(data);
+      const settings = await settingsService.update(data, section);
 
       res.success({
         message: "تنظیمات سایت با موفقیت ویرایش شد.",
