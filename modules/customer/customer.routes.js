@@ -35,7 +35,7 @@ router.post(
 );
 
 router.get(
-  "/details",
+  "/:_id",
   authenticate,
   authenticate,
   allowCustomerOrAdmin,

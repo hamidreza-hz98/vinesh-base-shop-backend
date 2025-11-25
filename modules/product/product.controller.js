@@ -93,6 +93,38 @@ const productController = {
       });
     }
   },
+
+  async getSeoData(req, res) {
+    const filter = req.query;
+
+    try {
+      const seo = await productService.getSeoData(filter);
+
+      res.success({
+        data: seo,
+      });
+    } catch (error) {
+      res.error({
+        message: error.message || "مشکلی پیش آمد.",
+        code: error.statusCode || 500,
+      });
+    }
+  },
+
+  async getProductsForSitemap(req, res) {
+    try {
+      const products = await productService.getProductsForSitemap();
+
+      res.success({
+        data: products,
+      });
+    } catch (error) {
+      res.error({
+        message: error.message || "مشکلی پیش آمد.",
+        code: error.statusCode || 500,
+      });
+    }
+  },
 };
 
 module.exports = productController;

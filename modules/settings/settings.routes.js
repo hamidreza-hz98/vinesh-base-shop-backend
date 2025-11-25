@@ -7,6 +7,12 @@ const settingsValidation = require("./settings.validation");
 const settingsController = require("./settings.controller");
 const { authenticate, requireAdmin } = require("../../middlewares/auth");
 
+router.get("/", settingsController.getAllSettings);
+
+router.get("/seo/faq", settingsController.getFaqSchema)
+
+router.get("/seo/terms", settingsController.getTermsSchema)
+
 router.put(
   "/:section",
   authenticate,

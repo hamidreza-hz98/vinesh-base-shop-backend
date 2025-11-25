@@ -8,9 +8,18 @@ const cartController = require("./cart.controller");
 const { authenticate, requireCustomer } = require("../../middlewares/auth");
 
 router.post(
-  "/:customerId",
-  validate(cartValidation.update),
+  "/",
+  cartController.create
+);
+
+router.post(
+  "/update/:_id",
   cartController.update
+);
+
+router.get(
+  "/details/:_id",
+  cartController.getCart
 );
 
 router.get(

@@ -2,11 +2,11 @@ const Customer = require("../../models/Customer");
 const throwError = require("../../middlewares/throw-error");
 const { buildMongoFindQuery, buildMongoSort } = require("../../lib/filter");
 const { generateToken } = require("../../lib/token");
+const bcrypt = require("bcrypt");
 
 const customerService = {
   async create(data) {
     const existing = await Customer.exists({ phone: data.phone });
-
 
     if (existing) {
       throwError("مشتری با این شماره تلفن قبلا ثبت نام کرده است.", 409);
@@ -53,20 +53,20 @@ const customerService = {
     return { customers, total };
   },
 
-  async getDetails(filter) {
-    const existing = await Customer.exists(filter);
+  async getDetails(_id) {
+    const existing = await Customer.exists({_id});
 
     if (!existing) {
       throwError("مشتری با این مشخصات یافت نشد.", 404);
     }
 
-    const customer = await Customer.findOne(filter);
+    const customer = await Customer.findById(_id);
 
     return customer;
   },
 
   async delete(_id) {
-    const existing = await Customer.exists({_id});
+    const existing = await Customer.exists({ _id });
 
     if (!existing) {
       throwError("مشتری با این مشخصات یافت نشد.", 404);
@@ -91,12 +91,12 @@ const customerService = {
   },
 
   async login(data) {
-    const existing = await Customer.exists({phone: data.phone});
+    const existing = await Customer.findOne({ phone: data.phone });
 
     if (!existing) {
       throwError("مشخصات کاربری اشتباه است.", 401);
     }
-    
+
     const isMatch = await bcrypt.compare(data.password, existing.password);
     if (!isMatch) {
       throwError("مشخصات کاربری اشتباه است.", 401);

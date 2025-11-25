@@ -15,7 +15,7 @@ router.post(
   addressController.create
 );
 
-router.post(
+router.put(
   "/:_id",
   authenticate,
   requireCustomer,

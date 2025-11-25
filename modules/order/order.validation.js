@@ -18,25 +18,21 @@ const orderValidation = {
     status: Joi.string()
       .valid("pending_payment", "paid", "shipping", "delivered")
       .default("pending_payment"),
-    products: Joi.array().items(orderProductSchema).min(1).required(),
+    cart: Joi.object().required(),
     customer: Joi.string().pattern(objectIdRegex).required(),
     description: Joi.string().allow("", null),
-    address: Joi.object().required(),
     transaction: Joi.string().pattern(objectIdRegex).allow(null),
-    price: priceSchema,
     shipmentDate: Joi.date().allow(null),
     shipmentTrackNumber: Joi.string().allow("", null),
   }),
 
   update: Joi.object({
-    status: Joi.string().valid("pending_payment", "paid", "shipping", "delivered"),
-    products: Joi.array().items(orderProductSchema),
-    customer: Joi.string().pattern(objectIdRegex),
-    description: Joi.string().allow("", null),
-    address: Joi.object(),
-    transaction: Joi.string().pattern(objectIdRegex),
-    price: priceSchema,
-    shipmentDate: Joi.date().allow(null),
+    status: Joi.string().valid(
+      "pending_payment",
+      "paid",
+      "shipping",
+      "delivered"
+    ),
     shipmentTrackNumber: Joi.string().allow("", null),
   }).min(1), // At least one field must be updated
 };

@@ -21,6 +21,8 @@ router.post(
 
 router.get("/", authenticate, requireAdmin, orderController.getAll);
 
+router.get("/:_id", authenticate, requireAdmin, orderController.getDetails)
+
 router.put(
   "/:_id",
   authenticate,
@@ -30,10 +32,17 @@ router.put(
 );
 
 router.get(
-  "/:customerId",
+  "/customer/:customerId",
   authenticate,
   requireCustomer,
   orderController.getCustomerOrdes
+);
+
+router.get(
+  "/details/customer/:code",
+  authenticate,
+  requireCustomer,
+  orderController.getCustomerOrderDetails
 );
 
 module.exports = router;

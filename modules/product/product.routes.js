@@ -19,6 +19,10 @@ router.get("/", productController.getAll);
 
 router.get("/details", productController.getDetails);
 
+router.get("/seo", productController.getSeoData)
+
+router.get("/sitemap", productController.getProductsForSitemap)
+
 router.put(
   "/:_id",
   authenticate,

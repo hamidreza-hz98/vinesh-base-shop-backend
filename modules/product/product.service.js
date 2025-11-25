@@ -1,6 +1,7 @@
 const Product = require("../../models/Product");
 const throwError = require("../../middlewares/throw-error");
 const { buildMongoFindQuery, buildMongoSort } = require("../../lib/filter");
+const { generateProductSchema } = require("../../lib/seo");
 
 const productService = {
   async create(data) {
@@ -47,9 +48,10 @@ const productService = {
         .sort(sortOption)
         .skip(skip)
         .limit(page_size)
-        .populate(
-          "media"
+        .select(
+          "title media excerpt price discount createdAt updatedAt stock brand slug"
         )
+        .populate("media brand")
         .lean(),
       Product.countDocuments(query),
     ]);
@@ -68,9 +70,14 @@ const productService = {
       );
     }
 
-    const product = await Product.findOne(filter).populate(
-      "categories media seo.ogImage seo.twitterImage tags brand relatedProducts"
-    );
+    const product = await Product.findOne(filter)
+      .populate("categories media seo.ogImage seo.twitterImage tags brand")
+      .populate({
+        path: "relatedProducts",
+        populate: {
+          path: "media",
+        },
+      });
 
     if (!product) {
       throwError("محصول مورد نظر یافت نشد", 404);
@@ -90,6 +97,67 @@ const productService = {
 
     return product;
   },
+
+  async updateStock(cartProducts) {
+    if (!Array.isArray(cartProducts) || cartProducts.length === 0) {
+      throwError("لیست محصولات معتبر نیست", 400);
+    }
+
+    const productIds = cartProducts.map((item) => item.product._id);
+    const existingProducts = await Product.find({ _id: { $in: productIds } });
+
+    const productMap = new Map(existingProducts.map((p) => [String(p._id), p]));
+
+    for (const item of cartProducts) {
+      const productId = String(item.product._id);
+      const quantity = item.quantity;
+
+      const product = productMap.get(productId);
+      if (!product) {
+        throwError(`محصول با شناسه ${productId} یافت نشد`, 404);
+      }
+
+      if (product.stock < quantity) {
+        throwError(`موجودی محصول ${product.title} کافی نیست`, 400);
+      }
+    }
+
+    const bulkOps = cartProducts.map((item) => ({
+      updateOne: {
+        filter: { _id: item.product._id },
+        update: { $inc: { stock: -item.quantity } },
+      },
+    }));
+
+    await Product.bulkWrite(bulkOps);
+
+    return true;
+  },
+
+  async getSeoData(filter) {
+    const product = await Product.findOne(filter)
+      .select("seo price discount brand slug stock categories")
+      .populate("seo.ogImage seo.twitterImage brand categories");
+
+    if (!product) {
+      throwError("محصولی با این شناسه یافت نشد.", 404);
+    }
+
+    const schema = generateProductSchema(product);
+
+    return { seo: product.seo, schema };
+  },
+
+  async getProductsForSitemap() {
+  const products = await Product.find()
+    .select("slug updatedAt")
+    .lean();
+
+  return products.map(p => ({
+    url: `${process.env.BASE_URL}/products/${p.slug}`,
+    lastmod: p.updatedAt.toISOString(),
+  }));
+}
 };
 
 module.exports = productService;

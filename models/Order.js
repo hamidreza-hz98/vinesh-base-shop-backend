@@ -11,7 +11,7 @@ const OrderSchema = new Schema({
   },
   status: {
     type: String,
-    enum: ["pending_payment", "paid", "shipping", "delivered"],
+    enum: ["pending_payment", "processing", "failed", "shipping", "delivered"],
     required: true,
     default: "pending_payment",
     trim: true,
@@ -47,6 +47,7 @@ const OrderSchema = new Schema({
   transaction: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Transaction",
+    default: null
   },
   price: {
     products: {
