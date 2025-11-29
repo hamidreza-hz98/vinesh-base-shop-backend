@@ -1,6 +1,7 @@
 const cors = require("cors");
 const responseMiddleware = require("../middlewares/response");
 const helmet = require("helmet");
+require('dotenv').config();
 
 const fs = require("fs");
 const path = require("path");
@@ -11,7 +12,19 @@ module.exports = function (app, express) {
   app.use(responseMiddleware);
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true }));
-  app.use(cors());
+  app.use(
+    cors({
+      origin: [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        process.env.FRONTEND_BASE_URL,
+      ],
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    })
+  );
+  app.options("*", cors());
 
   app.use(
     "/uploads/images",

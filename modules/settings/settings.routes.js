@@ -13,6 +13,8 @@ router.get("/seo/faq", settingsController.getFaqSchema)
 
 router.get("/seo/terms", settingsController.getTermsSchema)
 
+router.get("/seo", settingsController.getDefaultSeo)
+
 router.put(
   "/:section",
   authenticate,

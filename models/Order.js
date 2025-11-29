@@ -44,11 +44,11 @@ const OrderSchema = new Schema({
     type: Schema.Types.Mixed,
     required: true,
   },
-  transaction: {
+  transactions: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "Transaction",
     default: null
-  },
+  }],
   price: {
     products: {
       type: Number,

@@ -53,6 +53,20 @@ const settingsController = {
     }
   },
 
+  async getDefaultSeo(req, res){
+    try {
+      const defaultSeo = await settingsService.getDefaultSeo()
+      res.success({
+        data: defaultSeo
+      })
+    } catch (error) {
+      res.error({
+        message: error.message || "مشکلی پیش آمد.",
+        code: error.statusCode || 500,
+      });
+    }
+  },
+
   async getFaqSchema(req, res) {
     try {
       const schema = await settingsService.getFaqSchema();

@@ -13,6 +13,7 @@ const adminRoutes = require("./admin/admin.routes");
 const addressRoutes = require("./address/address.routes");
 const settingsRoutes = require("./settings/settings.routes");
 const contactRoutes = require("./contact/contact.routes");
+const transactionRoutes = require("./transaction/transaction.routes");
 
 router.use("/media", mediaRoutes);
 router.use("/brand", brandRoutes);
@@ -26,5 +27,6 @@ router.use("/admin", adminRoutes);
 router.use("/address", addressRoutes);
 router.use("/settings", settingsRoutes);
 router.use("/contact", contactRoutes);
+router.use("/transaction", transactionRoutes);
 
 module.exports = router;

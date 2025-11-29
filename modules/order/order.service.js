@@ -126,6 +126,20 @@ const orderService = {
 
     return order;
   },
+
+  async addTransactionToOrder(orderId, transactionId) {
+    const order = await Order.findByIdAndUpdate(
+      orderId,
+      { $push: { transactions: transactionId } },
+      { new: true }
+    );
+
+    if (!order) {
+      throwError("Order not found");
+    }
+
+    return order;
+  },
 };
 
 module.exports = orderService;

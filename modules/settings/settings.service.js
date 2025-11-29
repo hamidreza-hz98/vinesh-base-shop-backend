@@ -69,6 +69,12 @@ const settingsService = {
     return settings;
   },
 
+  async getDefaultSeo() {
+    const settings = await Settings.findOne().select("default-seo").populate("default-seo.ogImage default-seo.twitterImage");
+
+    return settings[`default-seo`];
+  },
+
   async getFaqSchema() {
     const faqs = await Settings.findOne().select("faq");
 
