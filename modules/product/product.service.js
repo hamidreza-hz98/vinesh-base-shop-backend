@@ -165,22 +165,19 @@ const productService = {
   },
 
   async getDashboardData() {
-    try {
-      
-      const totalProducts = await Product.countDocuments();
-      const mostVisitedProducts = await Product.find()
-      .sort({visits: -1})
-      .limit(10);
-      const mostSoldProducts = await Product.find()
-      .sort({soldNumber: -1})
+    const totalProducts = await Product.countDocuments();
+
+    const mostVisitedProducts = await Product.find()
+    .select("title slug excerpt price discount media stock visits soldNumber").populate("media")
+      .sort({ visits: -1 })
       .limit(10);
 
-      return { totalProducts, mostVisitedProducts, mostSoldProducts };
-    } catch (error) {
-      console.log(error);
-      
-      throwError(error.message, 500)
-    }
+    const mostSoldProducts = await Product.find()
+    .select("title slug excerpt price discount media stock visits soldNumber").populate("media")
+      .sort({ soldNumber: -1 })
+      .limit(10);
+
+    return { totalProducts, mostVisitedProducts, mostSoldProducts };
   },
 };
 

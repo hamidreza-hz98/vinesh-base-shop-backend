@@ -68,30 +68,71 @@ const transactionController = {
     }
   },
 
-async verify(req, res) {
-  let txn = null;
-  let order = null;
+  async verify(req, res) {
+    let txn = null;
+    let order = null;
 
-  try {
-    const { tx } = req.query;
-    const { Authority, authority } = req.query;
-    const authorityParam = Authority || authority;
+    try {
+      const { tx } = req.query;
+      const { Authority, authority } = req.query;
+      const authorityParam = Authority || authority;
 
-    txn = await transactionService.getDetails(tx);
+      txn = await transactionService.getDetails(tx);
 
-    order = txn.orderId; // set order here
+      order = txn.orderId; // set order here
 
-    // If already successful => redirect
-    if (txn.status === "SUCCESS") {
-      return res.redirect(
-        `${FRONTEND_BASE}/payment-result?order=${order.code}&result=successful`
-      );
-    }
+      // If already successful => redirect
+      if (txn.status === "SUCCESS") {
+        return res.redirect(
+          `${FRONTEND_BASE}/payment-result?order=${order.code}&result=successful`
+        );
+      }
 
-    // Missing or mismatched authority
-    if (!authorityParam || txn.authority !== authorityParam) {
+      // Missing or mismatched authority
+      if (!authorityParam || txn.authority !== authorityParam) {
+        txn.status = "FAILED";
+        txn.error = { message: "Authority mismatch" };
+
+        await transactionService.update(txn._id, {
+          status: txn.status,
+          error: txn.error,
+        });
+
+        await orderService.update({ status: "failed" }, order._id);
+
+        return res.redirect(
+          `${FRONTEND_BASE}/payment-result?order=${order.code}&result=failed`
+        );
+      }
+
+      // Verify with Zarinpal
+      const verifyRes = await transactionService.verifyPayment({
+        // amount: txn.amount,
+        amount: 10000,
+        authority: authorityParam,
+      });
+
+      const vdata = verifyRes.data || {};
+
+      if (vdata.code === 100) {
+        txn.status = "SUCCESS";
+        txn.refId = vdata.ref_id;
+
+        await transactionService.update(txn._id, {
+          status: txn.status,
+          refId: txn.refId,
+        });
+
+        await orderService.update({ status: "processing" }, order._id);
+
+        return res.redirect(
+          `${FRONTEND_BASE}/payment-result?order=${order.code}&result=successful`
+        );
+      }
+
+      // Payment failed
       txn.status = "FAILED";
-      txn.error = { message: "Authority mismatch" };
+      txn.error = { code: vdata.code, message: vdata.message };
 
       await transactionService.update(txn._id, {
         status: txn.status,
@@ -103,63 +144,39 @@ async verify(req, res) {
       return res.redirect(
         `${FRONTEND_BASE}/payment-result?order=${order.code}&result=failed`
       );
-    }
+    } catch (err) {
+      console.error("verify error", err);
 
-    // Verify with Zarinpal
-    const verifyRes = await transactionService.verifyPayment({
-      // amount: txn.amount,
-      amount: 10000,
-      authority: authorityParam,
-    });
+      const orderId = order?._id;
+      const orderCode = order?.code || txn?.orderId?.code || "unknown";
 
-    const vdata = verifyRes.data || {};
-
-    if (vdata.code === 100) {
-      txn.status = "SUCCESS";
-      txn.refId = vdata.ref_id;
-
-      await transactionService.update(txn._id, {
-        status: txn.status,
-        refId: txn.refId,
-      });
-
-      await orderService.update({ status: "processing" }, order._id);
+      if (orderId) {
+        await orderService.update({ status: "failed" }, orderId);
+      }
 
       return res.redirect(
-        `${FRONTEND_BASE}/payment-result?order=${order.code}&result=successful`
+        `${FRONTEND_BASE}/payment-result?order=${orderCode}&result=failed`
       );
     }
+  },
 
-    // Payment failed
-    txn.status = "FAILED";
-    txn.error = { code: vdata.code, message: vdata.message };
+  async retryPayment(req, res) {
+    try {
+      const { orderId } = req.body;
+      const order = await orderService.getDetails(orderId);
 
-    await transactionService.update(txn._id, {
-      status: txn.status,
-      error: txn.error,
-    });
+      if (!["pending_payment", "failed"].includes(order.status)) {
+        return res.status(400).json({
+          error: "امکان پرداخت مجدد برای این سفارش وجود ندارد",
+        });
+      }
 
-    await orderService.update({ status: "failed" }, order._id);
-
-    return res.redirect(
-      `${FRONTEND_BASE}/payment-result?order=${order.code}&result=failed`
-    );
-  } catch (err) {
-    console.error("verify error", err);
-
-    const orderId = order?._id;
-    const orderCode = order?.code || txn?.orderId?.code || "unknown";
-
-    if (orderId) {
-      await orderService.update({ status: "failed" }, orderId);
+      return transactionController.initiate(req, res);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "خطا در ایجاد پرداخت مجدد" });
     }
-
-    return res.redirect(
-      `${FRONTEND_BASE}/payment-result?order=${orderCode}&result=failed`
-    );
-  }
-}
-
+  },
 };
 
 module.exports = transactionController;

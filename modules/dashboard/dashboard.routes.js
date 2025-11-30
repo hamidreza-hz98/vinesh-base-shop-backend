@@ -4,6 +4,6 @@ const router = express.Router()
 const dashboardController = require("./dashboard.controller")
 const { authenticate, requireAdmin } = require("../../middlewares/auth")
 
-router.get("/", dashboardController.getData)
+router.get("/", authenticate, requireAdmin, dashboardController.getData)
 
 module.exports = router

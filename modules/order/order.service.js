@@ -145,9 +145,11 @@ const orderService = {
 
   async getDashboardData(status){
     const totalOrders = await Order.countDocuments()
-    
-    const orders = await Order.find({ status }).limit(10)
+   
+    const orders = await Order.find({ status }).select("customer code createdAt price").populate("customer").limit(10)
+   
     const totalSales = await this.calculateTotalSales()
+   
     const orderRevenueData = await this.calculateOrderRevenue()
     
     return { totalOrders, orders, totalSales, orderRevenueData }
