@@ -3,6 +3,8 @@ const throwError = require("../../middlewares/throw-error");
 const { buildMongoFindQuery, buildMongoSort } = require("../../lib/filter");
 const cartService = require("../cart/cart.service");
 const productService = require("../product/product.service");
+const {calculateFinalPrice} = require("../../lib/number");
+const moment = require("jalali-moment");
 
 const orderService = {
   async create(data) {
@@ -36,7 +38,7 @@ const orderService = {
 
   async getAll({
     search = "",
-    sort = { field: "createdAt", order: "desc" },
+    sort = [{ field: "createdAt", order: "desc" }],
     page = 1,
     page_size = 10,
     filters = {},
@@ -140,6 +142,85 @@ const orderService = {
 
     return order;
   },
+
+  async getDashboardData(status){
+    const totalOrders = await Order.countDocuments()
+    
+    const orders = await Order.find({ status }).limit(10)
+    const totalSales = await this.calculateTotalSales()
+    const orderRevenueData = await this.calculateOrderRevenue()
+    
+    return { totalOrders, orders, totalSales, orderRevenueData }
+  },
+  
+  async calculateTotalSales(){
+    const orders = await Order.find({ status: "delivered" }).select("price")
+    let totalSales = 0
+    
+    for(const order of orders ){
+      const finalPrice = calculateFinalPrice(order.price)
+
+      totalSales += finalPrice
+    }
+
+    return totalSales
+  },
+
+  async calculateOrderRevenue () {
+  try {
+    moment.locale("fa")
+    // date range : from 12 months ago (start of that month) until now
+    const end = moment().endOf("jMonth") // end of current jalali month
+    const start = moment().subtract(11, "jMonth").startOf("jMonth")
+
+    const orders = await Order.find({
+      status: "delivered",
+      createdAt: {
+        $gte: start.toDate(),
+        $lte: end.toDate(),
+      },
+    })
+
+    // prepare base months
+    const months = []
+
+    for (let i = 0; i < 12; i++) {
+      const m = moment(start).add(i, "jMonth")
+
+      months.push({
+        key: m.format("jYYYY-jMM"),
+        time: m.format("jMMMM jYYYY"), // مثال: شهریور 1404
+        totalSales: 0,
+      })
+    }
+
+    // calculate revenue per month
+    for (const order of orders) {
+      const orderDate = moment(order.createdAt)
+      const orderKey = orderDate.format("jYYYY-jMM")
+
+      const monthIndex = months.findIndex((m) => m.key === orderKey)
+
+      if (monthIndex !== -1) {
+        const total = calculateFinalPrice(order.price)
+
+        // تبدیل به «میلیون تومان»
+        months[monthIndex].totalSales += total / 1_000_000
+      }
+    }
+
+    // رند کردن (مثلا: 18.4 → 18)
+    const finalData = months.map((m) => ({
+      time: m.time,
+      totalSales: Math.round(m.totalSales),
+    }))
+
+    return finalData
+  } catch (error) {
+    console.error("Error in calculateOrderRevenue:", error)
+    throwError("خطا در محاسبه درآمد ماهانه", 500)
+  }
+}
 };
 
 module.exports = orderService;

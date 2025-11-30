@@ -90,13 +90,13 @@ const cartService = {
 
     await cart.populate("address");
     await cart.populate({
-        path: "products",
-        populate: {
-          path: "product",
+      path: "products",
+      populate: {
+        path: "product",
 
-          populate: "media",
-        },
-      });
+        populate: "media",
+      },
+    });
 
     return cart;
   },
@@ -118,7 +118,6 @@ const cartService = {
     } else {
       cart.products.push({ product: productId, quantity });
     }
-
   },
 
   /** Decreases quantity or removes product if quantity <= 0 */
@@ -160,17 +159,20 @@ const cartService = {
   async recalculatePrices(cart) {
     let productsMap = new Map();
 
-    // If populated: build a quick map
-    if (
+    const isPopulated =
       cart.products?.[0]?.product &&
-      typeof cart.products[0].product === "object"
-    ) {
+      typeof cart.products[0].product === "object" &&
+      "price" in cart.products[0].product; // <--- FIX
+
+    // If populated: build a quick map
+    if (isPopulated) {
       cart.products.forEach((item) => {
         productsMap.set(item.product._id.toString(), item.product);
       });
     } else {
       // If NOT populated: fetch products
       const productIds = cart.products.map((p) => p.product);
+
       const response = await productService.getAll({
         filters: { _id: { value: productIds, type: "in" } },
       });
@@ -199,7 +201,7 @@ const cartService = {
 
         const itemOriginalPrice = price * cartItem.quantity;
         const itemDiscount = discount * cartItem.quantity;
-        const itemFinalPrice = itemOriginalPrice - itemDiscount;
+        const itemFinalPrice = itemOriginalPrice;
 
         discountTotal += itemDiscount;
         productsTotal += itemFinalPrice;

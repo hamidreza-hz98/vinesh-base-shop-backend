@@ -111,6 +111,10 @@ const customerService = {
 
     return { customer: customerData, token };
   },
+
+  async getDashboardData(){
+    return await Customer.countDocuments()
+  }
 };
 
 module.exports = customerService;

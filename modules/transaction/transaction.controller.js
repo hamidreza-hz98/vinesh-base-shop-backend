@@ -68,90 +68,98 @@ const transactionController = {
     }
   },
 
-  async verify(req, res) {
-    let txn; // declare txn in outer scope
-    try {
-      const { tx } = req.query;
-      const { Authority, authority } = req.query;
-      const authorityParam = Authority || authority;
+async verify(req, res) {
+  let txn = null;
+  let order = null;
 
-      txn = await transactionService.getDetails(tx);
+  try {
+    const { tx } = req.query;
+    const { Authority, authority } = req.query;
+    const authorityParam = Authority || authority;
 
-      const order = txn.orderId;
+    txn = await transactionService.getDetails(tx);
 
-      // If already successful => redirect immediately
-      if (txn.status === "SUCCESS") {
-        return res.redirect(
-          `${FRONTEND_BASE}/payment-result?order=${order.code}&result=successful`
-        );
-      }
+    order = txn.orderId; // set order here
 
-      // Missing or mismatched authority
-      if (!authorityParam || txn.authority !== authorityParam) {
-        txn.status = "FAILED";
-        txn.error = { message: "Authority mismatch" };
-        await transactionService.update(txn._id, {
-          status: txn.status,
-          error: txn.error,
-          authority: txn.authority, // only if you changed it
-          refId: txn.refId, // only if you changed it
-        });
+    // If already successful => redirect
+    if (txn.status === "SUCCESS") {
+      return res.redirect(
+        `${FRONTEND_BASE}/payment-result?order=${order.code}&result=successful`
+      );
+    }
 
-        return res.redirect(
-          `${FRONTEND_BASE}/payment-result?order=${order.code}&result=failed`
-        );
-      }
-
-      // Verify with Zarinpal
-      const verifyRes = await transactionService.verifyPayment({
-        amount: 10000,
-        // amount: txn.amount,
-        authority: authorityParam,
-      });
-
-      const vdata = verifyRes.data || {};
-
-      // Payment success
-      if (vdata.code === 100) {
-        txn.status = "SUCCESS";
-        txn.refId = vdata.ref_id;
-        await transactionService.update(txn._id, {
-          status: txn.status,
-          error: txn.error,
-          authority: txn.authority, // only if you changed it
-          refId: txn.refId, // only if you changed it
-        });
-
-        await orderService.update({ status: "processing" }, order._id);
-
-        return res.redirect(
-          `${FRONTEND_BASE}/payment-result?order=${order.code}&result=successful`
-        );
-      }
-
-      // Payment failed
+    // Missing or mismatched authority
+    if (!authorityParam || txn.authority !== authorityParam) {
       txn.status = "FAILED";
-      txn.error = { code: vdata.code, message: vdata.message };
+      txn.error = { message: "Authority mismatch" };
+
       await transactionService.update(txn._id, {
         status: txn.status,
         error: txn.error,
-        authority: txn.authority, // only if you changed it
-        refId: txn.refId, // only if you changed it
       });
+
+      await orderService.update({ status: "failed" }, order._id);
 
       return res.redirect(
         `${FRONTEND_BASE}/payment-result?order=${order.code}&result=failed`
       );
-    } catch (err) {
-      console.error("verify error", err);
+    }
 
-      // safe fallback if txn is undefined
-      const orderCode = txn?.orderId?.code || "unknown";
+    // Verify with Zarinpal
+    const verifyRes = await transactionService.verifyPayment({
+      // amount: txn.amount,
+      amount: 10000,
+      authority: authorityParam,
+    });
+
+    const vdata = verifyRes.data || {};
+
+    if (vdata.code === 100) {
+      txn.status = "SUCCESS";
+      txn.refId = vdata.ref_id;
+
+      await transactionService.update(txn._id, {
+        status: txn.status,
+        refId: txn.refId,
+      });
+
+      await orderService.update({ status: "processing" }, order._id);
+
       return res.redirect(
-        `${FRONTEND_BASE}/payment-result?order=${orderCode}&result=failed`
+        `${FRONTEND_BASE}/payment-result?order=${order.code}&result=successful`
       );
     }
-  },
+
+    // Payment failed
+    txn.status = "FAILED";
+    txn.error = { code: vdata.code, message: vdata.message };
+
+    await transactionService.update(txn._id, {
+      status: txn.status,
+      error: txn.error,
+    });
+
+    await orderService.update({ status: "failed" }, order._id);
+
+    return res.redirect(
+      `${FRONTEND_BASE}/payment-result?order=${order.code}&result=failed`
+    );
+  } catch (err) {
+    console.error("verify error", err);
+
+    const orderId = order?._id;
+    const orderCode = order?.code || txn?.orderId?.code || "unknown";
+
+    if (orderId) {
+      await orderService.update({ status: "failed" }, orderId);
+    }
+
+    return res.redirect(
+      `${FRONTEND_BASE}/payment-result?order=${orderCode}&result=failed`
+    );
+  }
+}
+
 };
 
 module.exports = transactionController;

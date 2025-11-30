@@ -32,21 +32,33 @@ exports.authenticate = async (req, res, next) => {
 
 // Admin-only routes
 exports.requireAdmin = (req, res, next) => {
-  if (!req.admin)
+  const authHeader = req.headers.authorization;
+  const token = authHeader.split(" ")[1];
+  const decoded = verifyToken(token);
+
+  if (!decoded.type === "admin")
     return res.status(403).json({ message: "دسترسی مدیر مورد نیاز است" });
   next();
 };
 
 // Customer-only routes
 exports.requireCustomer = (req, res, next) => {
-  if (!req.customer)
+  const authHeader = req.headers.authorization;
+  const token = authHeader.split(" ")[1];
+  const decoded = verifyToken(token);
+  
+  if (!decoded.type === "customer")
     return res.status(403).json({ message: "دسترسی مشتری مورد نیاز است" });
   next();
 };
 
 // Routes accessible by both admin or customer
 exports.allowCustomerOrAdmin = (req, res, next) => {
-  if (req.admin || req.customer) return next();
+  const authHeader = req.headers.authorization;
+  const token = authHeader.split(" ")[1];
+  const decoded = verifyToken(token);
+
+  if (decoded.type === "admin" || decoded.type === "customer") return next();
   return res
     .status(403)
     .json({ message: "دسترسی مشتری یا مدیر مورد نیاز است" });

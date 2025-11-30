@@ -49,7 +49,7 @@ const productService = {
         .skip(skip)
         .limit(page_size)
         .select(
-          "title media excerpt price discount createdAt updatedAt stock brand slug"
+          "title media excerpt price discount createdAt updatedAt stock visits brand slug"
         )
         .populate("media brand")
         .lean(),
@@ -70,7 +70,11 @@ const productService = {
       );
     }
 
-    const product = await Product.findOne(filter)
+    const product = await Product.findOneAndUpdate(
+      filter,
+      { $inc: { visits: 1 } },
+      { new: true }
+    )
       .populate("categories media seo.ogImage seo.twitterImage tags brand")
       .populate({
         path: "relatedProducts",
@@ -125,7 +129,10 @@ const productService = {
     const bulkOps = cartProducts.map((item) => ({
       updateOne: {
         filter: { _id: item.product._id },
-        update: { $inc: { stock: -item.quantity } },
+        update: {
+          $inc: { stock: -item.quantity },
+          $inc: { soldNumber: item.quantity },
+        },
       },
     }));
 
@@ -149,15 +156,32 @@ const productService = {
   },
 
   async getProductsForSitemap() {
-  const products = await Product.find()
-    .select("slug updatedAt")
-    .lean();
+    const products = await Product.find().select("slug updatedAt").lean();
 
-  return products.map(p => ({
-    url: `${process.env.BASE_URL}/products/${p.slug}`,
-    lastmod: p.updatedAt.toISOString(),
-  }));
-}
+    return products.map((p) => ({
+      url: `${process.env.BASE_URL}/products/${p.slug}`,
+      lastmod: p.updatedAt.toISOString(),
+    }));
+  },
+
+  async getDashboardData() {
+    try {
+      
+      const totalProducts = await Product.countDocuments();
+      const mostVisitedProducts = await Product.find()
+      .sort({visits: -1})
+      .limit(10);
+      const mostSoldProducts = await Product.find()
+      .sort({soldNumber: -1})
+      .limit(10);
+
+      return { totalProducts, mostVisitedProducts, mostSoldProducts };
+    } catch (error) {
+      console.log(error);
+      
+      throwError(error.message, 500)
+    }
+  },
 };
 
 module.exports = productService;
